@@ -60,7 +60,7 @@ contract SimpleBank {
         users[msg.sender].locked = false;
     }
 
-    modifier isEnrolled() {
+    modifier mustBeEnrolled() {
         require(users[msg.sender].enrolled, "You are not enrolled in SimpleBank. Please enroll before other interactions");
         _;
     }
@@ -87,11 +87,15 @@ contract SimpleBank {
         return users[msg.sender].enrolled;
     }
 
+    function isEnrolled(address user) public view returns ( bool ) {
+        return users[user].enrolled;
+    }
+
     /// @notice Deposit ether into bank
     /// @return The balance of the user after the deposit is made
     // This function can receive ether
     // Users should be enrolled before they can make deposits
-    function deposit() public payable isEnrolled greaterThanZero(msg.value) returns (uint) {
+    function deposit() public payable mustBeEnrolled greaterThanZero(msg.value) returns (uint) {
         users[msg.sender].balance += msg.value;
         emit LogDepositMade(msg.sender, msg.value);
         return users[msg.sender].balance;
@@ -101,7 +105,7 @@ contract SimpleBank {
     /// @param withdrawAmount amount you want to withdraw
     /// @return The balance remaining for the user
     // Emit the appropriate event
-    function withdraw(uint withdrawAmount) public isEnrolled greaterThanZero(withdrawAmount) lock returns (uint) {
+    function withdraw(uint withdrawAmount) public mustBeEnrolled greaterThanZero(withdrawAmount) lock returns (uint) {
         require(users[msg.sender].balance >= withdrawAmount, "You have not the required money to withdraw.");
         users[msg.sender].balance -= withdrawAmount;
         uint new_balance = users[msg.sender].balance;
